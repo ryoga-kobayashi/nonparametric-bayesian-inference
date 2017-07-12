@@ -128,7 +128,7 @@ z_map = function(z, K){
 }
 
 
-gaussian_mixture_model = function(x, K, mu_0 = rep(0, 4), rho_0 = 0, a_0 = 1, b_0 = 1, p_0 = rep(1/K, K), tau_0 = 1,     alpha_0 = rep(1, 3)
+gaussian_mixture_model = function(x, K, mu_0 = rep(0, ncol(x)), rho_0 = 0, a_0 = 1, b_0 = 1, p_0 = rep(1/K, K), tau_0 = 1, alpha_0 = rep(1, K)
 , iter_max = 10000, burn_in = iter_max*0.1){
     # K = 3
     # mu_0 = rep(0, 4); rho_0 = 0; a_0 = 1; b_0 = 1

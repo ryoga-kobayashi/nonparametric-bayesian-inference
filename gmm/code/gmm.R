@@ -111,4 +111,4 @@ data(iris)
 x = as.matrix(iris[, 1:4])
 fit_gmm = gaussian_mixture_model(x = x, K = 3)
 z_true = iris[, 5]
-table(fit_mgm$z_map, z_true)
+table(fit_gmm$z_map, z_true)
