@@ -5,10 +5,6 @@ library(mvtnorm)
 # install.packages("MCMCpack")
 library(MCMCpack)
 
-data(iris)
-x = as.matrix(iris[, 1:4])
-
-
 delta = function(z, k){
     ifelse(test = z == k, yes = 1, no = 0)
 }
@@ -69,7 +65,7 @@ gibbs_sampling_z = function(x, mu, tau, p, K = K){
     return(z)
 }
 
-gibbs_sampling_mu = function(x, z, tau, p, K){
+gibbs_sampling_mu = function(x, z, tau, rho_0, mu_0, p, K){
     n = nrow(x)
     d = ncol(x)
     n_k = calculate_n_k(z = z, K = K)
@@ -84,6 +80,7 @@ gibbs_sampling_mu = function(x, z, tau, p, K){
 }
 
 gibbs_sampling_tau = function(x, z, mu_0, rho_0, a_0, b_0, K){
+    x = x
     n = nrow(x)
     d = ncol(x)
     a_n = a_0 + (n*d)/2
@@ -128,13 +125,8 @@ z_map = function(z, K){
 }
 
 
-gaussian_mixture_model = function(x, K, mu_0 = rep(0, ncol(x)), rho_0 = 0, a_0 = 1, b_0 = 1, p_0 = rep(1/K, K), tau_0 = 1, alpha_0 = rep(1, K)
+gaussian_mixture_model = function(x, K, mu_0 = rep(0, ncol(x)), rho_0 = 1, a_0 = 1, b_0 = 1, p_0 = rep(1/K, K), tau_0 = 1, alpha_0 = rep(1, K)
 , iter_max = 10000, burn_in = iter_max*0.1){
-    # K = 3
-    # mu_0 = rep(0, 4); rho_0 = 0; a_0 = 1; b_0 = 1
-    # p_0 = rep(1/K, K); tau_0 = 1
-    # alpha_0 = rep(1, 3)
-    # iter_max = 100
 
     n = nrow(x)
     d = ncol(x)
@@ -146,7 +138,7 @@ gaussian_mixture_model = function(x, K, mu_0 = rep(0, ncol(x)), rho_0 = 0, a_0 =
 
     x_random = sample(1:n, size = K, replace = FALSE)
     for(k in 1:K){
-        mu[k, , 1] = x[x_random[k], ]
+        mu[k, , 1] = as.numeric(x[x_random[k], ])
         cat(mu[k, , 1], "\n")
     }
     tau[1] = tau_0
@@ -154,7 +146,7 @@ gaussian_mixture_model = function(x, K, mu_0 = rep(0, ncol(x)), rho_0 = 0, a_0 =
     z[, 1] = gibbs_sampling_z(x = x, mu = mu[, , 1], tau = tau[1], p = p[, 1], K = K)
 
     for(s in 2:iter_max){
-        mu[, , s] = gibbs_sampling_mu(x = x, z = z[, s-1], tau = tau[s-1], p = p[, s-1], K = K)
+        mu[, , s] = gibbs_sampling_mu(x = x, z = z[, s-1], tau = tau[s-1], p = p[, s-1], K = K, rho_0 = rho_0, mu_0)
         tau[s] = gibbs_sampling_tau(x = x, z = z[, s-1], mu_0 = mu_0, rho_0 = rho_0, a_0 = a_0, b_0 = b_0, K = K)
         p[, s] = gibbs_sampling_p(z = z[, s-1], alpha = alpha_0, K = K)
         z[, s] = gibbs_sampling_z(x = x, mu = mu[, , s], tau = tau[s], p = p[, s], K = K)
@@ -171,6 +163,6 @@ gaussian_mixture_model = function(x, K, mu_0 = rep(0, ncol(x)), rho_0 = 0, a_0 =
 
 data(iris)
 x = as.matrix(iris[, 1:4])
-fit_gmm = gaussian_mixture_model(x = x, K = 3)
+fit_gmm = gaussian_mixture_model(x = x, K = 3, mu_0 = rep(2, ncol(x)))
 z_true = iris[, 5]
 table(fit_gmm$z_map, z_true)
